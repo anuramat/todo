@@ -1,0 +1,6 @@
+walk = "git"
+
+[formatter.python]
+command = "black"
+includes = [ "*.py" ]
+options = [ "-q" ]
