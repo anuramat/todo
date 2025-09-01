@@ -1,5 +1,5 @@
 {
-  description = "Todo CLI tool";
+  description = "todo.txt CLI in python";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -7,35 +7,35 @@
     treefmt-nix.url = "github:numtide/treefmt-nix";
   };
 
-  outputs = inputs @ { flake-parts, ... }:
+  outputs =
+    inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
-      systems = [ "x86_64-linux" "aarch64-darwin" ];
+      systems = [
+        "x86_64-linux"
+        "aarch64-darwin"
+      ];
       imports = [
         inputs.treefmt-nix.flakeModule
       ];
 
-      perSystem = { config, self', inputs', pkgs, system, ... }: {
-        packages.default = pkgs.stdenv.mkDerivation {
-          pname = "todo";
-          version = "0.1.0";
-          src = ./.;
-
-          buildInputs = [ pkgs.python3 ];
-
-          installPhase = ''
-            mkdir -p $out/bin
-            cp todo.py $out/bin/todo
-            chmod +x $out/bin/todo
+      perSystem =
+        {
+          pkgs,
+          ...
+        }:
+        let
+          pkg = pkgs.writeScriptBin "todo" ''
+            #!${pkgs.python3}/bin/python3
+            ${builtins.readFile ./todo.py}
           '';
-        };
-
-        treefmt.config = {
-          projectRootFile = "flake.nix";
-          programs.black = {
-            enable = true;
-            package = pkgs.python3Packages.black;
+        in
+        {
+          packages.default = pkg;
+          treefmt.config.programs = {
+            black.enable = true;
+            isort.enable = true;
+            nixfmt.enable = true;
           };
         };
-      };
     };
 }
